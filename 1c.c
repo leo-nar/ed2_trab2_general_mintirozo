@@ -12,7 +12,7 @@ unsigned char typedef bool;
 
 int* ler_inteiros(const char * arquivo, const int n)
 {
-    FILE* f = fopen(arquivo, "r");
+    FILE* f = fopen(arquivo, "int");
 
     int * inteiros = (int *) malloc(sizeof(int) * n);
 
