@@ -87,7 +87,7 @@ unsigned h_mul(unsigned x, unsigned i, unsigned B)
 
 
 
-    unsigned over_prog( unsigned* coli ,string* tab, string s, unsigned B,int tipo)
+    unsigned over_prog( unsigned* coli ,string* tab, string s, unsigned B,unsigned M,int tipo)
     {
         int c1;
         unsigned h, c;
@@ -97,11 +97,11 @@ unsigned h_mul(unsigned x, unsigned i, unsigned B)
         c=converter(s);
 
         *coli++;
-        for(c1=0;tab[h]!=NULL&&c1<B;c1++)// faz o re-hasing ate achar um espaco vago
+        for(c1=0;c1<M;c1++)// faz o re-hasing ate achar um espaco vago
         {
             h=hash(c,c1,B,tipo);
 
-            if(tab[h]==NULL)
+            if(tab[h][0]=='\0')
             {
                 return h;
             }
@@ -109,7 +109,7 @@ unsigned h_mul(unsigned x, unsigned i, unsigned B)
             *coli++;//conta as colisoes
         }
 
-        if(c1<B)
+        if(c1<M)
         return h;
 
         return -1;
@@ -117,16 +117,16 @@ unsigned h_mul(unsigned x, unsigned i, unsigned B)
     }
 
 
-    unsigned achar(unsigned* ach, string* tab, string s, unsigned B,int tipo)//funcao de busca
+    unsigned achar(unsigned* ach, string* tab, string s, unsigned B, unsigned M,int tipo)//funcao de busca
     {
-        unsigned seta;
+        unsigned seta=0;
         int c1;
 
-        for(c1=0;c1<B;c1++)
+        for(c1=0;c1<M;c1++)
         {
             seta=hash(converter(s),c1,B,tipo);//aponta para o hash do buscado e faz o re-hash
 
-            if(tab[seta]==NULL)//se nao tem nada no hash do buscado
+            if(tab[seta][0]=='\0')//se nao tem nada no hash do buscado
             {
                 return -1;
             }
@@ -143,10 +143,20 @@ unsigned h_mul(unsigned x, unsigned i, unsigned B)
 
     }
 
+string * cria_tabela(unsigned size)
+{
+    int c1;
+    string *tab;
 
+    tab= malloc(sizeof(string)*size);
 
+    for(c1=0;c1<size;c1++)
+    {
+        tab[c1]=calloc(sizeof(char),20);
+    }
+    return tab;
 
-
+}
 
 
 
@@ -171,14 +181,9 @@ int main(int argc, char const *argv[])
 
     // cria tabela hash com hash por divisão
 
-    string* tabela=malloc(sizeof(string)*B);
+    string* tabela=cria_tabela(M);
 
     int c1;
-
-    for(c1=B;c1>0;c1--)//marca os espaços vazios na tabela
-    {
-        tabela[c1]=NULL;
-    }
 
 
 
@@ -188,7 +193,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < N; i++) {
         // inserir insercoes[i] na tabela hash
 
-        c1= over_prog(&colisoes_h_div,tabela,tabela[i],B,0);
+        c1= over_prog(&colisoes_h_div,tabela,tabela[i],B,M,0);
         if(c1==-1)
         {
             printf("deu ruim");
@@ -207,17 +212,19 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < M; i++) {
         // buscar consultas[i] na tabela hash
 
-        achar(&encontrados_h_div,tabela, consultas[i],B,0);
+        achar(&encontrados_h_div,tabela, consultas[i],B,M,0);
 
     }
     double tempo_busca_h_div = finaliza_tempo();
 
     // limpa a tabela hash com hash por divisão
 
-    for(c1=B;c1>0;c1--)
+    for(c1=0;c1>M;c1--)
     {
-        tabela[c1]=NULL;
+        free(tabela[c1]);
     }
+
+    free(tabela);
 
 
 
@@ -225,6 +232,7 @@ int main(int argc, char const *argv[])
 
     // cria tabela hash com hash por divisão
 
+    tabela=cria_tabela(M);
 
 
     // inserção dos dados na tabela hash usando hash por multiplicação
@@ -232,7 +240,7 @@ int main(int argc, char const *argv[])
         for (int i = 0; i < N; i++) {
         // inserir insercoes[i] na tabela hash
 
-        c1= over_prog(&colisoes_h_mul,tabela,tabela[i],B,1);
+        c1= over_prog(&colisoes_h_mul,tabela,tabela[i],B,M,1);
 
         if(c1==-1)
         {
@@ -249,7 +257,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < M; i++) {
         // buscar consultas[i] na tabela hash
 
-        achar(&encontrados_h_mul,tabela, consultas[i],B,1);
+        achar(&encontrados_h_mul,tabela, consultas[i],B,M,1);
 
     }
     double tempo_busca_h_mul = finaliza_tempo();
